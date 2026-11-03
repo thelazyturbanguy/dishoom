@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dishoom</title>
+<meta name="theme-color" content="#FFD53D">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dishoom">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Lilita+One&display=swap">
+<style>html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px)}img{max-width:100%}[hidden]{display:none!important}
+/* Layout: one sunny sticker-style screen. Fight stage on top, one next action card, three tabs at the bottom. */
+:root{
+  color-scheme:light;
+  --sun:#FFD53D; --sun2:#FFE680; --ink:#1E1633; --card:#FFFFFF; --soft:#FFF4C2; --mute:#5C5470;
+  --hd:#2456E6; --nk:#F0257D; --good:#17A34A; --bad:#E5352B; --wait:#E08600;
+  --display:"Lilita One","Arial Rounded MT Bold","Arial Black",sans-serif;
+  --body:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--sun);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.3;font-weight:500;min-height:100%;overscroll-behavior-y:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.45;cursor:not-allowed}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--hd);outline-offset:2px}
+input,textarea{font:inherit;color:var(--ink)}
+p{margin:0}
+h2,h3{margin:0;font-family:var(--display);font-weight:400;line-height:1.1;text-wrap:balance}
+h2{font-size:26px}h3{font-size:20px}
+#app{max-width:480px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:10px 92px;display:flex;flex-direction:column;gap:12px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-family:var(--display);font-size:24px}
+.pill{background:var(--ink);color:#fff;border-radius:99px;padding:3px 11px;font-size:13px;font-weight:700;white-space:nowrap}
+.demo{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:600}
+.demo button{padding:3px 10px;border-radius:99px;border:2px solid var(--ink);background:#fff;font-weight:700;min-height:30px}
+.demo button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.hp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hp>div{min-width:0}
+.hp .nm{display:flex;justify-content:space-between;font-family:var(--display);font-size:16px}
+.hp .n .nm{flex-direction:row-reverse}
+.bar{height:18px;border:3px solid var(--ink);border-radius:10px;background:#fff;overflow:hidden;position:relative;margin-top:2px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--hd);transition:width .35s}
+.hp .n .bar i{left:auto;right:0;background:var(--nk)}
+.stage{border:4px solid var(--ink);border-radius:26px;overflow:hidden;line-height:0;position:relative;background:var(--sun2);box-shadow:0 5px 0 var(--ink)}
+.stage canvas{width:100%;height:auto;display:block;touch-action:manipulation;cursor:pointer}
+.cap{position:absolute;left:10px;right:10px;bottom:10px;text-align:center;line-height:1.15}
+.cap span{display:inline-block;background:var(--ink);color:#fff;border-radius:12px;padding:5px 11px;font-weight:700;font-size:14px}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 0 var(--ink);min-width:0}
+.card.hot{background:#FFE1EE}
+.card.boss{background:#E4ECFF}
+.eyebrow{font-weight:700;font-size:13px;color:var(--mute)}
+.big{font-family:var(--display);font-size:25px;line-height:1.08}
+.sub{font-size:14px;color:var(--mute);line-height:1.25}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>.btn{flex:1 1 30%}
+.btn{min-height:50px;padding:7px 14px;border-radius:15px;border:3px solid var(--ink);background:var(--sun);font-family:var(--display);font-size:17px;box-shadow:0 4px 0 var(--ink);transition:transform .06s,box-shadow .06s;text-align:center;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;line-height:1.05}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.g{background:#7FE39B}.btn.r{background:#FF9C92}.btn.w{background:#fff}.btn.p{background:#FF8CC0}.btn.b{background:#9DB9FF}
+.btn.small{min-height:44px;font-size:15px;padding:5px 11px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:3px 2px 7px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;min-height:48px;padding:3px 12px;border:3px solid var(--ink);border-radius:15px;background:#fff;font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.chip small{font-size:11px;font-weight:600}
+.chip.ok{background:#7FE39B}.chip.pending{background:#FFD98A}.chip.no{background:#FF9C92}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--ink);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);z-index:20}
+nav.tabs div{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+nav.tabs button{padding:13px 2px;color:#CFC8E6;font-family:var(--display);font-size:17px}
+nav.tabs button[aria-current="true"]{color:var(--sun)}
+.dot{display:inline-block;min-width:19px;height:19px;border-radius:10px;background:var(--bad);color:#fff;font:700 12px/19px var(--body);margin-left:5px;padding:0 4px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.game{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:12px;text-align:left;box-shadow:0 4px 0 var(--ink);display:flex;flex-direction:column;gap:3px;min-height:112px}
+.game:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.game b{font-family:var(--display);font-weight:400;font-size:18px;line-height:1.05}
+.game span{font-size:13px;color:var(--mute);line-height:1.2}
+.game em{font-style:normal;font-weight:700;font-size:13px;margin-top:auto}
+.head{border-radius:50%;border:3px solid var(--ink);object-fit:cover;background:#fff;display:block;flex:0 0 auto}
+.lad{display:flex;flex-direction:column;gap:5px}
+.lad>div{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;padding:3px 10px;border-radius:12px;background:var(--soft)}
+.lad b{font-family:var(--display);font-weight:400;font-size:16px}
+.lad span{font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.lad .hs{display:flex;gap:3px;align-items:center}
+.stat{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.stat b{font-variant-numeric:tabular-nums;text-align:right}
+.track{height:14px;border:3px solid var(--ink);border-radius:9px;background:#fff;overflow:hidden}
+.track i{display:block;height:100%;background:var(--bad)}
+.feed{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.feed div{display:flex;gap:7px;align-items:center}
+details{font-size:14px}
+summary{font-family:var(--display);font-size:18px;cursor:pointer;min-height:44px;display:flex;align-items:center}
+details li{margin-bottom:5px}
+details ul{padding-left:18px;margin:4px 0}
+.field{width:100%;min-height:52px;padding:8px 12px;border:3px solid var(--ink);border-radius:14px;background:#fff}
+#ov>.sheet{position:fixed;inset:0;z-index:40;background:rgba(30,22,51,.72);display:flex;align-items:flex-end;justify-content:center}
+.sheet>div{background:var(--sun2);width:100%;max-width:480px;border:4px solid var(--ink);border-bottom:0;border-radius:26px 26px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;max-height:92%;overflow:auto;animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.3}}
+.full{position:fixed;inset:0;z-index:50;background:var(--sun);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));text-align:center;overflow:auto;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.full.dark{background:var(--ink);color:#fff}
+.full.pink{background:#FF8CC0}
+.full.blue{background:#9DB9FF}
+.num{font-family:var(--display);font-size:clamp(64px,22vw,110px);line-height:1}
+.bubble{background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:18px;padding:9px 16px;font-family:var(--display);font-size:22px;line-height:1.1;max-width:340px;animation:pop .25s}
+.big-head{width:min(60vw,250px);height:min(60vw,250px);border-width:6px;animation:bob 1.3s ease-in-out infinite}
+.big-head.hit{animation:smack .16s}
+@keyframes bob{50%{transform:translateY(-8px) rotate(2deg)}}
+@keyframes smack{30%{transform:scale(.86) rotate(-11deg)}70%{transform:scale(1.07) rotate(7deg)}}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.fly{position:fixed;font-family:var(--display);font-size:26px;color:var(--bad);pointer-events:none;z-index:60;animation:fly .6s ease-out forwards}
+@keyframes fly{to{transform:translateY(-70px) scale(1.4);opacity:0}}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:13px;padding:8px 14px;font-weight:700;z-index:70;width:max-content;max-width:calc(100% - 32px);text-align:center;animation:tin .2s}
+@keyframes tin{from{transform:translate(-50%,10px);opacity:0}}
+.wheel{width:230px;height:230px;border-radius:50%;border:6px solid var(--ink);background:conic-gradient(#FF8CC0 0 60deg,#9DB9FF 0 120deg,#7FE39B 0 180deg,#FFD53D 0 240deg,#FF9C92 0 300deg,#fff 0);transition:transform 3.2s cubic-bezier(.15,.8,.2,1);position:relative}
+.ptr{width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:26px solid var(--ink);margin-bottom:-22px;z-index:2}
+.crop{position:relative;width:260px;height:260px;border-radius:50%;overflow:hidden;border:5px solid var(--ink);align-self:center;touch-action:none;background:#fff;cursor:grab}
+.crop canvas{width:100%;height:100%}
+.faces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.faces button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;font-weight:700;min-height:44px}
+.login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:16px}
+.who{display:flex;gap:18px}
+.who button{display:flex;flex-direction:column;gap:4px;align-items:center;font-family:var(--display);font-size:17px;min-height:44px}
+.who button[aria-pressed="true"] img{outline:5px solid var(--ink);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+.head.cut{border:0;border-radius:0;background:none;object-fit:contain}
+img.head[src^="data:image/webp"]{border:0;border-radius:0;background:none;object-fit:contain}
+</style></head><body>
+<div id="app"></div>
+<nav class="tabs" aria-label="Sections"><div id="tabs"></div></nav>
+<div id="ov"></div>
+<script src="config.js"></script>
+<script>/* Game rules. Everything on screen is worked out from one list of events, so both phones always agree. */
+const CONF=(typeof window!=='undefined'&&window.DANGAL_CONFIG)||{};
+const RULES=CONF.rules||{};
+const rh=RULES.harshdeep||{},rn=RULES.nikki||{};
+const PL={
+  h:{name:'Harshdeep',email:'harshdeep@example.com',gymT:rh.gymDays||4,cp:5,stepT:rh.stepTarget||6000,stepGoal:rh.stepLabel||'6,000 to 7,000'},
+  n:{name:'Nikki',email:'nikki@example.com',gymT:rn.gymDays||5,cp:10,stepT:rn.stepTarget||10000,stepGoal:rn.stepLabel||String((rn.stepTarget||10000).toLocaleString('en-IN'))}
+};
+PL.h.gp=80/PL.h.gymT;PL.n.gp=80/PL.n.gymT;
+const START=CONF.seasonStart||null;
+const rival=k=>k==='h'?'n':'h';
+const RANKS=[['Gully Fighter',0],['Mohalla Don',400],['Zila Champion',1000],['State Champion',2000],['Rustam-e-Hind',4000]];
+const DOSTI=[['Hi-Bye Friends',0],['Gym Buddies',10],['Best Rivals',30],['Partners in Crime',70],['Best Enemies',140]];
+const BOSSES=[['Samosa Raja','#E8A33D'],['Gulab Jamun Baba','#A84B24'],['Momo Monster','#F2E3C6'],['Vada Pav Vikram','#D98B3A'],['Chole Bhature Chacha','#C9702C'],['Biryani Bhai','#E06C2B']];
+const RAID_T=RULES.bossRaidSteps||120000, KO_PTS=170, MAX_REJ=RULES.rejectionsPerWeek||3;
+const SPLIT=rn.split||['Chest, triceps, shoulders','Hamstrings, glutes','Back, biceps','Full legs','Core',null,null];
+const MEALS=['Breakfast','Lunch','Dinner'];
+const QUESTIONS=CONF.questions||['Gym mein sabse irritating banda kaun hota hai?','Agar ek hi cheat meal zindagi bhar khana ho, kya hoga?','Tumhara gym wala gaana kaunsa hai?','Bachpan ka sabse bakwaas nickname?','Aaj ka mood ek film title mein batao.','Sabse weird cheez jo tumhe calm karti hai?','Kaunsa exercise tumhara dushman hai?','Ek din ke liye kisi ki body mil jaaye, kiski?','Last time kis baat pe bohot hasi aayi thi?','Sabse bada jhooth jo gym ke baare mein bola?','Aisa kaunsa khana hai jo sab pasand karte hain, tumhe nahi?','Kaunsi cheez mein tum secretly bohot ache ho?','Ek skill jo tum 30 din mein seekhna chahoge?','Tumhari life ka theme song kya hoga?','Sabse embarrassing moment jo ab funny lagta hai?','Late night ka sabse dangerous craving?','Agar kal chhutti ho, kya karoge?','Kaunsa reel tumne 10 baar dekha hai?','Tumhari sabse irritating aadat?','Bina phone ek din, sabse zyada kya miss hoga?','Tumhara comfort show kaunsa hai?','Is hafte ki ek choti si jeet batao.','Sabse overrated fitness advice?','Agar tumhara ek reality show ho, naam kya hoga?','Aaj kisne tumhara din better banaya?','Mummy ke haath ki best cheez?','Sabse bekaar gift jo kabhi mila?','Tumhare bare mein log kya galat sochte hain?','Next trip kahan honi chahiye?','Ek cheez jo tum dobara try karna chahte ho?'];
+const CHALLENGES=CONF.challenges||[['20 squats',15],['15 push-ups',15],['60 second plank',15],['30 jumping jacks',15],['500 extra steps',20],['20 lunges',15]];
+const FORFEITS=CONF.forfeits||['Winner picks your next story','Winner writes your next caption','Post a reel winner chooses','Send your worst gym selfie','Buy the winner a meal','50 squats, on snap'];
+const NUDGES=CONF.nudges||['Steps kahan hain?','Gym gaye kya?','Snap nahi aaya abhi tak','Uth ja, chal','Khana khaya?','Sona bhi hai, phone rakho'];
+const HYPES=CONF.hypes||['Kya baat hai!','Machine ho tum','Respect','Aaj toh aag laga di','Thoda dheere, mujhe bhi jeetna hai','Proud of you, thoda sa'];
+const FORMS=['Rock','Paper','Dumbbell'];
+
+const IST=19800000,DAY=86400000,SHIFT=3*3600000;
+const pad=n=>String(n).padStart(2,'0');
+const istDate=t=>new Date(t+IST);
+const rawKey=t=>{const d=istDate(t);return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())};
+const dayKey=t=>rawKey(t-SHIFT); /* a day runs until 3 AM, so late dinners count for the right day */
+const keyTs=k=>{const[y,m,d]=k.split('-').map(Number);return Date.UTC(y,m-1,d)-IST};
+const addDays=(k,n)=>rawKey(keyTs(k)+n*DAY+1000);
+const dayIdx=k=>(new Date(keyTs(k)+IST).getUTCDay()+6)%7;
+const weekOf=k=>addDays(k,-dayIdx(k));
+const hourIst=t=>{const d=istDate(t);return d.getUTCHours()+d.getUTCMinutes()/60};
+const dayNum=k=>{let h=0;for(const c of k)h=(h*33+c.charCodeAt(0))%100003;return h};
+const questionFor=k=>QUESTIONS[dayNum(k)%QUESTIONS.length];
+const bossFor=w=>BOSSES[dayNum(w)%BOSSES.length];
+const rankOf=x=>{let r=0;RANKS.forEach((a,i)=>{if(x>=a[1])r=i});return r};
+const dostiOf=x=>{let r=0;DOSTI.forEach((a,i)=>{if(x>=a[1])r=i});return r};
+const claimLabel=c=>({gym:'Gym done',planb:'Plan B, '+fmtN(c.n)+' steps',cardio:'40 min incline',steps:fmtN(c.n)+' steps',meal:MEALS[c.slot],sleep:'Asleep by 12:30',content:'Content posted'})[c.q];
+const fmtN=n=>Number(n||0).toLocaleString('en-IN');
+
+function compute(evs,t){
+  const started=START&&dayKey(t)>=START;
+  const list=(started?evs.filter(e=>dayKey(e.ts)>=START):[...evs]).sort((a,b)=>a.ts-b.ts||(a.id<b.id?-1:1));
+  const newP=()=>({days:{},pts:0,gym:0,planb:0,content:0,dmg:0});
+  const S={claims:{},weeks:{},hits:[],xp:{h:0,n:0},tokens:{h:0,n:0},clean:{h:0,n:0},karz:{h:0,n:0},dosti:0,
+    records:{nose:{h:0,n:0},plank:{h:0,n:0},slap:{h:0,n:0}},games:{},rpd:[],races:[],ambushes:[],answers:{},nudges:[],spins:{},redeems:[],results:[],
+    cur:weekOf(dayKey(t)),today:dayKey(t),t,practice:!!(START&&!started)};
+  const wk=w=>S.weeks[w]||(S.weeks[w]={k:w,p:{h:newP(),n:newP()},rej:{h:0,n:0},raid:0,used:false});
+  const hit=(w,id,ts,by,amt,label,kind)=>S.hits.push({w,id,ts,by,amt,label,kind});
+  const dayLog={};
+  const once=(a,k,d)=>{const key=a+k+d;if(dayLog[key])return false;dayLog[key]=1;return true};
+  const capAdd=(a,k,d,cap,v)=>{const key='cap'+a+k+d;const used=dayLog[key]||0;const g=Math.min(v,Math.max(0,cap-used));dayLog[key]=used+g;return g};
+  for(const e of list){
+    const a=e.actor,d=e.data||{},ek=dayKey(e.ts),w=weekOf(ek);
+    if(e.type==='claim'){
+      S.claims[e.id]={...d,id:e.id,actor:a,ts:e.ts,status:'pending'};
+    }else if(e.type==='verdict'){
+      const c=S.claims[d.claim];
+      if(!c||c.actor===a||c.status!=='pending')continue;
+      if(d.v==='ok'){c.status='ok';c.res=e.ts}
+      else{const W=wk(weekOf(c.day));if(W.rej[a]<MAX_REJ){W.rej[a]++;c.status='no';c.res=e.ts}}
+    }else if(e.type==='poke'){
+      const c=S.claims[d.claim];if(c)c.poked=e.ts;
+    }else if(e.type==='nudge'){
+      S.nudges.push({id:e.id,ts:e.ts,from:a,text:d.text,kind:d.kind});
+      if(d.kind==='hype'&&once(a,'hype',ek)){S.dosti+=1}
+    }else if(e.type==='ambush'){
+      S.ambushes.push({id:e.id,ts:e.ts,from:a,ch:d.ch,mins:CHALLENGES[d.ch]?CHALLENGES[d.ch][1]:15,done:null});
+    }else if(e.type==='ambush_done'){
+      const m=S.ambushes.find(x=>x.id===d.ambush);
+      if(m&&m.from!==a&&!m.done&&e.ts<=m.ts+m.mins*60000)m.done=e.ts;
+    }else if(e.type==='nose'){
+      S.records.nose[a]=Math.max(S.records.nose[a],d.reps||0);
+      const g=capAdd(a,'nose',ek,6,Math.floor((d.reps||0)/5));
+      if(g>0){hit(w,'g'+e.id,e.ts,a,g,d.reps+' nose push-ups','game');S.xp[a]+=g}
+    }else if(e.type==='plank'){
+      const best=S.records.plank[rival(a)];
+      const beat=best>0&&(d.ms||0)>best&&once(a,'plankwin',ek);
+      S.records.plank[a]=Math.max(S.records.plank[a],d.ms||0);
+      if(beat){hit(w,'g'+e.id,e.ts,a,5,'Plank record broken','game');S.xp[a]+=5}
+    }else if(e.type==='slap'){
+      S.records.slap[a]=Math.max(S.records.slap[a],d.n||0);
+      if(once(a,'slap',ek)){const g=Math.min(10,Math.floor((d.n||0)/10));S.xp[a]+=g;hit(w,'g'+e.id,e.ts,a,Math.min(3,g),d.n+' thappad','game')}
+    }else if(e.type==='rpd'){
+      S.rpd.push({id:e.id,ts:e.ts,from:a,move:d.move,reply:null});
+    }else if(e.type==='rpd_reply'){
+      const g=S.rpd.find(x=>x.id===d.game);
+      if(g&&g.from!==a&&g.reply===null){
+        g.reply=d.move;g.rts=e.ts;
+        const r=(g.move-d.move+3)%3; /* Paper beats Rock, Dumbbell beats Paper, Rock beats Dumbbell */
+        g.winner=r===0?null:r===1?g.from:a;
+        if(g.winner){hit(w,'g'+e.id,e.ts,g.winner,3,'Rock, Paper, Dumbbell','game');S.xp[g.winner]+=3}
+      }
+    }else if(e.type==='race_start'){
+      S.races.push({id:e.id,ts:e.ts,from:a,logs:{}});
+    }else if(e.type==='race_log'){
+      const r=S.races.find(x=>x.id===d.race);if(r&&r.logs[a]===undefined&&e.ts<r.ts+90*60000)r.logs[a]=d.n||0;
+    }else if(e.type==='answer'){
+      const A=S.answers[d.day]||(S.answers[d.day]={});
+      if(!A[a]){A[a]=d.text;S.xp[a]+=5;if(A[rival(a)])S.dosti+=2}
+    }else if(e.type==='spin'){
+      S.spins[d.week]=d.idx;
+    }else if(e.type==='redeem'){
+      S.redeems.push({ts:e.ts,actor:a});
+    }
+  }
+  /* ambushes that ran out land as hits, answered ones hit back */
+  for(const m of S.ambushes){
+    const w=weekOf(dayKey(m.ts)),end=m.ts+m.mins*60000;m.end=end;m.target=rival(m.from);
+    if(m.done){hit(w,'a'+m.id,m.done,m.target,3,'Ambush beaten: '+CHALLENGES[m.ch][0],'game');S.xp[m.target]+=3}
+    else if(t>end){hit(w,'a'+m.id,end,m.from,5,'Ambush missed: '+CHALLENGES[m.ch][0],'game');S.xp[m.from]+=5}
+  }
+  /* races settle after the hour plus 30 minutes to log */
+  for(const r of S.races){
+    r.end=r.ts+3600000;r.close=r.ts+90*60000;const h=r.logs.h,n=r.logs.n;
+    if(t>r.close||(h!==undefined&&n!==undefined)){
+      r.settled=true;
+      const hv=h||0,nv=n||0;r.winner=hv===nv?null:hv>nv?'h':'n';
+      if(r.winner&&(h!==undefined||n!==undefined)){hit(weekOf(dayKey(r.ts)),'r'+r.id,Math.min(t,r.close),r.winner,5,'Step Race won','game');S.xp[r.winner]+=5}
+    }
+  }
+  /* unscored claims pass on their own by 2 PM the next day */
+  const oks=[];
+  for(const c of Object.values(S.claims)){
+    c.deadline=keyTs(addDays(c.day,1))+14*3600000;
+    if(c.status==='pending'&&t>c.deadline){c.status='ok';c.res=c.deadline;c.auto=true}
+    wk(weekOf(c.day)).used=true;
+    if(c.status==='ok')oks.push(c);
+  }
+  oks.sort((a,b)=>a.res-b.res);
+  for(const h of S.hits)wk(h.w);
+  const order=Object.keys(S.weeks).sort();
+  let revenge=null;const redeemed={h:0,n:0};
+  for(const w of order){
+    const W=S.weeks[w];W.revenge=revenge;
+    for(const c of oks){
+      if(weekOf(c.day)!==w)continue;
+      const k=c.actor,cfg=PL[k],P=W.p[k],D=P.days[c.day]||(P.days[c.day]={gym:0,cardio:0,steps:0,stepOk:0,meals:[0,0,0],sleep:0});
+      let pts=0;
+      const stepUp=n=>{const was=D.steps;if(n>was){D.steps=n;W.raid+=n-was}if(D.steps>=cfg.stepT&&!D.stepOk){D.stepOk=1;pts+=5}};
+      if(c.q==='gym'){if(!D.gym&&P.gym+P.planb<cfg.gymT){D.gym=1;P.gym++;pts+=cfg.gp}}
+      else if(c.q==='planb'){if(!D.gym&&P.planb<2&&P.gym+P.planb<cfg.gymT){D.gym=2;P.planb++;pts+=cfg.gp/2}stepUp(c.n||0)}
+      else if(c.q==='cardio'){if(!D.cardio){D.cardio=1;pts+=4}}
+      else if(c.q==='steps')stepUp(c.n||0);
+      else if(c.q==='meal'){if(!D.meals[c.slot]){D.meals[c.slot]=1;pts+=5/3}}
+      else if(c.q==='sleep'){if(!D.sleep){D.sleep=1;pts+=5}}
+      else if(c.q==='content'){if(P.content<3){P.content++;pts+=cfg.cp}}
+      if(pts>0){
+        P.pts+=pts;
+        let amt=pts*100/KO_PTS;
+        if(revenge===k&&dayIdx(c.day)===0)amt*=2;
+        hit(w,'c'+c.id,c.res,k,amt,claimLabel(c),'quest');
+      }
+    }
+    for(const h of S.hits)if(h.w===w)W.p[h.by].dmg+=h.amt;
+    W.hp={h:Math.max(0,100-W.p.n.dmg),n:Math.max(0,100-W.p.h.dmg)};
+    for(const k of ['h','n']){
+      const P=W.p[k];
+      let over=0;for(const D of Object.values(P.days))over+=Math.max(0,D.steps-PL[k].stepT);
+      S.karz[k]=Math.max(0,S.karz[k]-over);
+    }
+    if(w<S.cur){
+      const pct={h:Math.round(W.p.h.pts/2),n:Math.round(W.p.n.pts/2)};
+      const clean={h:pct.h>=85,n:pct.n>=85};
+      const outcome=clean.h&&clean.n?'double':W.p.h.dmg===W.p.n.dmg?'draw':W.p.h.dmg>W.p.n.dmg?'h':'n';
+      const karzNew={};
+      for(const k of ['h','n']){
+        const P=W.p[k];let z=Math.max(0,PL[k].gymT-P.gym-P.planb)*5000;if(!clean[k]&&z===0)z=5000;z=Math.min(z,15000);
+        karzNew[k]=z;S.karz[k]=Math.min(15000,S.karz[k]+z);
+        S.xp[k]+=Math.round(P.pts);
+        if(clean[k]){S.clean[k]++;S.tokens[k]++}
+      }
+      const raidWon=W.raid>=RAID_T;
+      if(raidWon){S.xp.h+=50;S.xp.n+=50;S.dosti+=3}
+      else if(W.used){S.xp.h=Math.max(0,S.xp.h-20);S.xp.n=Math.max(0,S.xp.n-20)}
+      S.results.push({w,pct,clean,outcome,karz:karzNew,raidWon,raid:W.raid,dmg:{h:W.p.h.dmg,n:W.p.n.dmg},hits:S.hits.filter(h=>h.w===w).sort((a,b)=>a.ts-b.ts)});
+      revenge=outcome==='h'?'n':outcome==='n'?'h':null;
+    }
+  }
+  for(const r of S.redeems)S.tokens[r.actor]=Math.max(0,S.tokens[r.actor]-1);
+  S.hits.sort((a,b)=>a.ts-b.ts);
+  const cur=S.weeks[S.cur]||wk(S.cur);
+  if(cur.revenge===undefined)cur.revenge=revenge;
+  if(!cur.hp)cur.hp={h:Math.max(0,100-cur.p.n.dmg),n:Math.max(0,100-cur.p.h.dmg)};
+  S.week=cur;
+  S.liveXp={h:S.xp.h+Math.round(cur.p.h.pts),n:S.xp.n+Math.round(cur.p.n.pts)};
+  S.streak={h:0,n:0};
+  for(const k of ['h','n']){
+    const count={};for(const c of Object.values(S.claims))if(c.actor===k&&c.status==='ok')count[c.day]=(count[c.day]||0)+1;
+    let d=count[S.today]>=3?S.today:addDays(S.today,-1),n=0;
+    while(count[d]>=3){n++;d=addDays(d,-1)}
+    S.streak[k]=n;
+  }
+  return S;
+}
+
+/* what a player still has to do on a given day */
+function questsFor(S,k,day){
+  const cfg=PL[k],idx=dayIdx(day),W=S.weeks[weekOf(day)];
+  const P=W?W.p[k]:{gym:0,planb:0,content:0};
+  const mine=Object.values(S.claims).filter(c=>c.actor===k);
+  const st=(q,slot)=>{
+    const m=mine.filter(c=>c.q===q&&c.day===day&&(slot===undefined||c.slot===slot));
+    return m.some(c=>c.status==='ok')?'ok':m.some(c=>c.status==='pending')?'pending':m.length?'no':'todo';
+  };
+  const out=[];
+  const gymDone=mine.some(c=>(c.q==='gym'||c.q==='planb')&&c.day===day&&c.status!=='no');
+  const gymAllowed=k==='h'?(P.gym+P.planb<cfg.gymT||gymDone):!!SPLIT[idx];
+  if(gymAllowed){
+    const s=st('gym');const b=st('planb');
+    out.push({q:'gym',label:k==='n'?SPLIT[idx]:'Gym session',short:'Gym',status:b==='ok'||b==='pending'?b:s,pts:cfg.gp});
+    if(k==='n')out.push({q:'cardio',label:'40 min incline',short:'Incline',status:st('cardio'),pts:4});
+  }
+  const steps=mine.filter(c=>(c.q==='steps'||c.q==='planb')&&c.day===day);
+  const stepVal=steps.reduce((m,c)=>c.status!=='no'?Math.max(m,c.n||0):m,0);
+  const stepPend=steps.some(c=>c.status==='pending');
+  out.push({q:'steps',label:cfg.stepGoal+' steps',short:'Steps',status:stepVal>=cfg.stepT?(stepPend?'pending':'ok'):stepPend?'pending':'todo',pts:5,val:stepVal});
+  MEALS.forEach((m,i)=>out.push({q:'meal',slot:i,label:m,short:m,status:st('meal',i),pts:1.67}));
+  if(k==='h')out.push({q:'sleep',label:'Asleep by 12:30 AM',short:'Sleep',status:st('sleep'),pts:5});
+  return out;
+}
+if(typeof module!=='undefined')module.exports={compute,questsFor,dayKey,weekOf,addDays,keyTs,dayIdx,PL,QUESTIONS,CHALLENGES,FORFEITS,NUDGES,HYPES,SPLIT};
+
+/* ---------- Setup ---------- */
+const CFG=window.DANGAL_CONFIG||{};
+const LIVE=!!(CFG.supabaseUrl&&CFG.supabaseAnonKey);
+const lsMem={};
+const lsGet=(k,d)=>{if(k in lsMem)return lsMem[k];try{const v=localStorage.getItem('gd-'+k);return v===null?d:JSON.parse(v)}catch(e){return d}};
+const lsSet=(k,v)=>{lsMem[k]=v;try{localStorage.setItem('gd-'+k,JSON.stringify(v))}catch(e){}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'x'+Date.now().toString(36)+Math.random().toString(36).slice(2));
+let nowOff=0;const now=()=>Date.now()+nowOff;
+let events=[],faces={h:{},n:{}},me=null,tab='home',S=null,sb=null;
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const appEl=document.getElementById('app'),ovEl=document.getElementById('ov'),tabsEl=document.getElementById('tabs');
+
+/* ---------- Sound ---------- */
+let AC=null,soundOn=lsGet('sound',true);
+function tone(f,d,type,v){if(!soundOn)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,AC.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(40,f*.45),AC.currentTime+d);g.gain.setValueAtTime(v||.16,AC.currentTime);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+const sPunch=()=>{tone(170,.13,'sawtooth',.2);tone(90,.2,'square',.12)};
+const sYay=()=>{tone(520,.1);setTimeout(()=>tone(780,.14),90)};
+const sBonk=()=>tone(300+Math.random()*180,.08,'square',.13);
+function buzz(n){try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}}
+
+/* ---------- Faces ---------- */
+const EXPR=[['smug','Smug'],['happy','Happy'],['hurt','Hurt'],['sad','Crying'],['sweat','Sweaty'],['sleepy','Sleepy']];
+const phCache={};
+function placeholder(k,expr){
+  const key=k+expr;if(phCache[key])return phCache[key];
+  const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
+  x.fillStyle=k==='h'?'#C98A5A':'#EFB78C';x.beginPath();x.arc(128,128,128,0,7);x.fill();
+  if(k==='h'){
+    x.fillStyle='#2F211C';x.beginPath();x.moveTo(30,150);x.quadraticCurveTo(128,300,226,150);x.quadraticCurveTo(128,195,30,150);x.fill();
+    x.fillStyle='#2456E6';x.beginPath();x.moveTo(0,105);x.quadraticCurveTo(128,-55,256,105);x.quadraticCurveTo(128,70,0,105);x.fill();
+    x.strokeStyle='#123BB5';x.lineWidth=7;x.beginPath();x.moveTo(28,75);x.quadraticCurveTo(128,30,212,70);x.stroke();
+  }else{
+    x.fillStyle='#2B1820';x.beginPath();x.moveTo(0,160);x.quadraticCurveTo(10,-20,128,0);x.quadraticCurveTo(246,-20,256,160);x.quadraticCurveTo(225,70,128,72);x.quadraticCurveTo(35,70,0,160);x.fill();
+  }
+  x.lineCap='round';x.strokeStyle='#1E1633';x.fillStyle='#1E1633';x.lineWidth=9;
+  const eye=(ex)=>{
+    if(expr==='hurt'){x.beginPath();x.moveTo(ex-13,115);x.lineTo(ex+13,137);x.moveTo(ex+13,115);x.lineTo(ex-13,137);x.stroke()}
+    else if(expr==='sleepy'||expr==='happy'){x.beginPath();x.arc(ex,expr==='happy'?133:122,13,expr==='happy'?Math.PI:0,expr==='happy'?0:Math.PI);x.stroke()}
+    else{x.beginPath();x.arc(ex,126,11,0,7);x.fill()}
+  };
+  eye(88);eye(168);
+  x.lineWidth=8;x.beginPath();
+  if(expr==='happy'){x.arc(128,165,28,.1,Math.PI-.1)}
+  else if(expr==='smug'){x.moveTo(100,178);x.quadraticCurveTo(140,188,162,162)}
+  else if(expr==='sad'||expr==='hurt'){x.arc(128,200,23,Math.PI+.2,-.2)}
+  else if(expr==='sleepy'){x.arc(128,180,9,0,7)}
+  else{x.moveTo(104,178);x.lineTo(152,178)}
+  x.stroke();
+  return phCache[key]=c.toDataURL('image/png');
+}
+function faceSrc(k,expr){const f=faces[k]||{};return f[expr]||f.smug||f.happy||Object.values(f)[0]||placeholder(k,expr)}
+const imgCache={};
+function faceImg(k,expr){const s=faceSrc(k,expr);if(!imgCache[s]){const i=new Image();i.src=s;imgCache[s]=i}return imgCache[s]}
+const isCut=s=>s.startsWith('data:image/webp');
+const headTag=(k,expr,size,cls)=>`<img class="head ${cls||''} ${isCut(faceSrc(k,expr||'smug'))?'cut':''}" src="${faceSrc(k,expr||'smug')}" alt="${PL[k].name}" style="width:${size}px;height:${size}px">`;
+
+/* ---------- Fight stage ---------- */
+class Stage{
+  constructor(){
+    this.cv=document.createElement('canvas');this.cv.width=720;this.cv.height=500;this.c=this.cv.getContext('2d');
+    this.cv.setAttribute('role','img');this.cv.setAttribute('aria-label','Harshdeep and Nikki fighting');
+    this.hp={h:100,n:100};this.q=[];this.cur=null;this.fx=[];this.look={h:{m:0,belly:0},n:{m:0,belly:0}};this.ko={h:false,n:false};this.wig={h:0,n:0};this.onCap=null;this.onHp=null;this.pose={};
+    this.cv.addEventListener('pointerdown',e=>this.tap(e));
+    this.loop=this.loop.bind(this);this.alive=true;requestAnimationFrame(this.loop);
+  }
+  tap(e){
+    const r=this.cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*720;
+    if(this.cur&&this.q.length){this.q.forEach(a=>{this.hp[a.vict]=Math.max(0,this.hp[a.vict]-a.amt)});this.q=[];this.onHp&&this.onHp()}
+    const k=x<360?'h':'n';this.wig[k]=1;sBonk();buzz(15);
+    this.fx.push({t:'word',x:k==='h'?200:520,y:120,s:['Oye!','Aaah','Hatt!','Bas kar'][Math.floor(Math.random()*4)],life:40,max:40});
+  }
+  play(a){this.q.push(a)}
+  burst(x,y,word,col){for(let i=0;i<14;i++)this.fx.push({t:'star',x,y,vx:(Math.random()-.5)*15,vy:(Math.random()-.8)*14,life:30,max:30,col:i%2?'#fff':col});this.fx.push({t:'word',x,y:y-40,s:word,life:48,max:48,big:1})}
+  loop(ts){
+    if(!this.alive)return;
+    if(this.cv.isConnected)this.draw(ts);
+    requestAnimationFrame(this.loop);
+  }
+  draw(ts){
+    const c=this.c;
+    c.fillStyle='#FFE680';c.fillRect(0,0,720,500);
+    c.save();c.translate(360,390);if(!REDUCED)c.rotate(ts/9000);c.fillStyle='#FFD53D';for(let i=0;i<12;i++){c.rotate(Math.PI/6);c.beginPath();c.moveTo(0,0);c.lineTo(-90,-800);c.lineTo(90,-800);c.fill()}c.restore();
+    c.fillStyle='#FF9F1C';c.strokeStyle='#1E1633';c.lineWidth=6;c.beginPath();c.ellipse(360,450,345,50,0,0,7);c.fill();c.stroke();
+    let hx=205,nx=515,hp='idle',np='idle';
+    if(!this.cur&&this.q.length){this.cur={...this.q.shift(),t0:ts,fired:false};this.onCap&&this.onCap(this.cur.cap)}
+    if(this.cur){
+      const a=this.cur,p=Math.min(1,(ts-a.t0)/(REDUCED?200:900));
+      const lunge=p<.3?p/.3:p<.6?1:1-(p-.6)/.4;
+      if(a.by==='h'){hx+=lunge*135;hp=p>.15&&p<.65?'punch':'idle'}else{nx-=lunge*135;np=p>.15&&p<.65?'punch':'idle'}
+      if(p>=.3&&!a.fired){a.fired=true;this.hp[a.vict]=Math.max(0,this.hp[a.vict]-a.amt);this.onHp&&this.onHp();sPunch();buzz(30);
+        const vx=a.vict==='h'?hx+20:nx-20;this.burst(vx,170,a.word||['DISHOOM!','DHAM!','THAPPAD!','DISHOOM!','PAKAD!'][Math.floor(Math.random()*5)],a.by==='h'?'#2456E6':'#F0257D');
+        this.fx.push({t:'word',x:vx,y:75,s:'-'+Math.max(1,Math.round(a.amt)),life:50,max:50,col:'#E5352B'})}
+      if(p>=.3&&p<.75){if(a.vict==='h'){hp='hit';hx-=20*(1-(p-.3)/.45)}else{np='hit';nx+=20*(1-(p-.3)/.45)}}
+      if(p>=1){this.cur=null;this.onCap&&this.onCap(null);if(!this.q.length&&this.onIdle)this.onIdle()}
+    }
+    const auto=k=>{const m=this.hp[k],o=this.hp[rival(k)];return this.ko[k]||m<=0?'ko':null};
+    hp=auto('h')||hp;np=auto('n')||np;
+    const expr=(k,pose)=>this.exprFor?this.exprFor(k,pose):(pose==='hit'||pose==='ko'?'hurt':pose==='punch'?'happy':this.hp[k]<this.hp[rival(k)]-12?'sad':this.hp[k]<30?'sweat':this.hp[k]>this.hp[rival(k)]+15?'cool':'smug');
+    this.fighter('h',hx,448,1,hp,ts,expr('h',hp));
+    this.fighter('n',nx,448,-1,np,ts,expr('n',np));
+    this.fx=this.fx.filter(f=>f.life-->0);
+    for(const f of this.fx){
+      if(f.t==='star'){f.x+=f.vx;f.y+=f.vy;f.vy+=.7;c.fillStyle=f.col;c.strokeStyle='#1E1633';c.lineWidth=2;c.beginPath();c.arc(f.x,f.y,7,0,7);c.fill();c.stroke()}
+      else{const a=Math.min(1,f.life/14);c.save();c.globalAlpha=a;c.translate(f.x,f.y-(f.max-f.life)*.8);const s=f.big?1+Math.max(0,(f.life-f.max+8))/8:1;c.scale(s,s);c.font=(f.big?56:40)+'px "Lilita One","Arial Black",sans-serif';c.textAlign='center';c.lineJoin='round';c.lineWidth=11;c.strokeStyle='#1E1633';c.strokeText(f.s,0,0);c.fillStyle=f.col||'#fff';c.fillText(f.s,0,0);c.restore()}
+    }
+  }
+  fighter(k,x,y,dir,pose,ts,expr){
+    const c=this.c,L=this.look[k],m=L.m,ink='#1E1633';
+    const shirt=k==='h'?'#2456E6':'#F0257D',pants=k==='h'?'#17224F':'#3B1F4B',skin=k==='h'?'#C98A5A':'#EFB78C',glove=k==='h'?'#E5352B':'#FFD53D';
+    const line=(a,b,d,e,w,col)=>{c.strokeStyle=ink;c.lineWidth=w+9;c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke();c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke()};
+    const off=(ts/1000+(k==='h'?0:1.1));const bob=REDUCED?0:Math.sin(off*4.2)*5;
+    this.wig[k]=Math.max(0,this.wig[k]-.05);
+    c.save();c.translate(x,y);c.lineCap='round';c.lineJoin='round';
+    if(pose==='ko'){c.translate(dir*125,-24);c.rotate(-dir*1.45);c.scale(.9,.9)}
+    c.scale(dir,1);
+    const hipY=-92+bob*.4,shY=-172+bob,sw=30+m*3,hw=24-m*.8;
+    /* legs */
+    line(-16,hipY,-30,-14,17,pants);line(16,hipY,34,-14,17,pants);
+    line(-30,-8,-14,-8,14,'#fff');line(34,-8,52,-8,14,'#fff');
+    /* back arm */
+    line(-sw+3,shY+12,-sw-8,shY+48,13+m*1.4,skin);
+    c.fillStyle=glove;c.strokeStyle=ink;c.lineWidth=5;c.beginPath();c.arc(-sw-4,shY+56,19,0,7);c.fill();c.stroke();
+    /* torso */
+    const belly=L.belly*16;
+    c.fillStyle=shirt;c.strokeStyle=ink;c.lineWidth=5;c.beginPath();c.moveTo(-sw,shY);c.quadraticCurveTo(0,shY-11,sw,shY);c.quadraticCurveTo(hw+belly+6,(shY+hipY)/2,hw,hipY+6);c.lineTo(-hw,hipY+6);c.quadraticCurveTo(-hw-belly-6,(shY+hipY)/2,-sw,shY);c.closePath();c.fill();c.stroke();
+    c.fillStyle=pants;c.fillRect(-hw+2,hipY-2,hw*2-4,12);
+    /* front arm */
+    const reach=pose==='punch'?1:0;
+    const sx=sw-4,sy=shY+14,fx=sx+22+reach*92,fy=sy+(reach?-14:-18);
+    const ex=sx+14+reach*44,ey=sy+(reach?-4:26);
+    line(sx,sy,ex,ey,13+m*1.4,skin);line(ex,ey,fx,fy,13+m*1.4,skin);
+    c.fillStyle=glove;c.strokeStyle=ink;c.lineWidth=5;c.beginPath();c.arc(fx+5,fy,reach?26:20,0,7);c.fill();c.stroke();
+    /* big head */
+    const R=76,hy=shY-R+14+(pose==='hit'?4:0);
+    const wob=Math.sin(ts/40)*this.wig[k]*.35+(pose==='hit'?-.18:0)+(REDUCED?0:Math.sin(off*2)*.025);
+    c.save();c.translate(0,hy);c.rotate(wob);c.scale(dir,1);
+    const cool=expr==='cool';const img=faceImg(k,cool?'smug':expr);const cut=isCut(img.src);
+    if(cut&&img.complete&&img.naturalWidth){const H2=R*2.5,W2=H2*img.naturalWidth/img.naturalHeight;c.drawImage(img,-W2/2,-H2/2-6,W2,H2)}
+    else{c.save();c.beginPath();c.arc(0,0,R,0,7);c.clip();
+    if(img.complete&&img.naturalWidth)c.drawImage(img,-R,-R,R*2,R*2);else{c.fillStyle=skin;c.fill()}
+    c.restore();
+    c.strokeStyle=ink;c.lineWidth=7;c.beginPath();c.arc(0,0,R,0,7);c.stroke()}
+    const eyes=cut?(k==='h'?{a:-17,b:29,y:-6}:{a:-6,b:33,y:-10}):{a:-34,b:34,y:12};
+    /* expression extras work on real photos too */
+    const t=ts/1000;
+    if(expr==='sad'&&pose!=='ko'){c.fillStyle='#5AB3FF';for(const s of[eyes.a,eyes.b]){const f=(t*1.4+(s>0?.5:0))%1;c.beginPath();c.arc(s,eyes.y+8+f*62,8,0,7);c.fill()}}
+    if(cool){const m=(eyes.a+eyes.b)/2,g=(eyes.b-eyes.a)/2+3;c.fillStyle=ink;c.strokeStyle=ink;c.lineWidth=5;c.fillRect(m-g-21,eyes.y-12,42,25);c.fillRect(m+g-21,eyes.y-12,42,25);c.beginPath();c.moveTo(m-g,eyes.y-8);c.lineTo(m+g,eyes.y-8);c.stroke();c.fillStyle='#fff';c.fillRect(m-g-14,eyes.y-7,10,5);c.fillRect(m+g-14,eyes.y-7,10,5)}
+    if(expr==='hurt'){c.save();c.translate(eyes.b+8,eyes.y-34);c.rotate(.6);c.fillStyle='#F2C9A0';c.strokeStyle=ink;c.lineWidth=3;c.fillRect(-22,-7,44,14);c.strokeRect(-22,-7,44,14);c.rotate(1.57);c.fillRect(-22,-7,44,14);c.strokeRect(-22,-7,44,14);c.restore();c.fillStyle='rgba(229,53,43,.35)';c.beginPath();c.arc(eyes.a-8,eyes.y+26,20,0,7);c.fill()}
+    if(expr==='sweat'){c.fillStyle='#8FD6FF';const f=t%1;c.beginPath();c.arc(58,-40+f*46,10,0,7);c.fill()}
+    if(expr==='sleepy'){c.fillStyle=ink;c.font='34px "Lilita One",sans-serif';c.textAlign='left';c.fillText('Zzz',44,-58-(t%1)*12)}
+    if(pose==='ko'){c.fillStyle='#FFD53D';c.strokeStyle=ink;c.lineWidth=3;for(let i=0;i<4;i++){const a=t*3+i*1.57;c.beginPath();c.arc(Math.cos(a)*75,-70+Math.sin(a)*16,9,0,7);c.fill();c.stroke()}}
+    c.restore();
+    c.restore();
+  }
+}
+const stage=new Stage();
+stage.onCap=s=>{const el=document.getElementById('cap');if(el)el.innerHTML=s?`<span>${esc(s)}</span>`:''};
+stage.onHp=()=>drawHp();
+stage.onIdle=()=>{if(S){stage.hp={h:S.week.hp.h,n:S.week.hp.n};drawHp()}};
+function drawHp(){for(const k of['h','n']){const a=document.getElementById('hp-'+k),b=document.getElementById('hv-'+k);if(a)a.style.width=stage.hp[k]+'%';if(b)b.textContent=Math.round(stage.hp[k])}}
+function setLooks(st,S){for(const k of['h','n']){st.look[k].m=Math.min(5,S.clean[k]+Math.floor(S.streak[k]/4));st.look[k].belly=S.streak[k]===0?1:0}}
+
+/* ---------- Saving and syncing ---------- */
+const store={
+  async add(ev){
+    if(!LIVE){lsSet('demo',events);return}
+    const{error}=await sb.from('events').insert(ev);
+    if(error){events=events.filter(e=>e.id!==ev.id);refresh();toast('Save nahi hua. Net check karo, phir try karo.')}
+  },
+  async loadAll(){
+    const out=[];let from=0;const size=1000;
+    for(;;){const{data,error}=await sb.from('events').select('*').order('ts').range(from,from+size-1);if(error)throw error;out.push(...data);if(data.length<size)break;from+=size}
+    const{data:fs}=await sb.from('faces').select('*');
+    faces={h:{},n:{}};(fs||[]).forEach(f=>{if(faces[f.player])faces[f.player][f.expr]=f.data});
+    return out;
+  },
+  async sync(){
+    if(!LIVE||!sb||!me)return;
+    const since=(events.length?Math.max(...events.map(e=>e.ts)):0)-120000;
+    const{data}=await sb.from('events').select('*').gt('ts',since).order('ts').limit(500);
+    let ch=false;(data||[]).forEach(e=>{if(!events.some(x=>x.id===e.id)){events.push(e);ch=true}});
+    if(ch)refresh();
+  },
+  subscribe(){
+    sb.channel('dangal').on('postgres_changes',{event:'INSERT',schema:'public',table:'events'},p=>{if(!events.some(x=>x.id===p.new.id)){events.push(p.new);refresh()}})
+      .on('postgres_changes',{event:'*',schema:'public',table:'faces'},p=>{const f=p.new;if(f&&faces[f.player]){faces[f.player][f.expr]=f.data;refresh()}}).subscribe();
+  },
+  async saveFace(expr,data){
+    faces[me][expr]=data;
+    if(LIVE){const{error}=await sb.from('faces').upsert({player:me,expr,data});if(error)toast('Photo save nahi hui. Phir try karo.')}
+    else lsSet('faces',faces);
+  }
+};
+function act(type,data){
+  const ev={id:uuid(),ts:now(),actor:me,type,data:data||{}};
+  events.push(ev);refresh();store.add(ev);
+  ping(type,ev);
+  if(!LIVE)bot(ev);
+  return ev;
+}
+async function push(to,title,body){
+  if(!LIVE||!CFG.vapidPublicKey)return;
+  try{await sb.functions.invoke('push',{body:{to,title,body}})}catch(e){}
+}
+function ping(type,ev){
+  const r=rival(me),n=PL[me].name,d=ev.data;
+  const msg={claim:()=>[n+': '+claimLabel(d),'Snap aaya? Score karo.'],
+    verdict:()=>{const c=S.claims[d.claim];return d.v==='ok'?[n+' ne approve kiya',(c?claimLabel(c):'')+' lag gaya!']:[n+' ne reject kiya',c?claimLabel(c):'']},
+    poke:()=>[n+': Snap nahi aaya','Bhejo jaldi.'],
+    nudge:()=>[n,d.text],
+    ambush:()=>['Ambush by '+n+'!',CHALLENGES[d.ch][0]+' in '+CHALLENGES[d.ch][1]+' minutes.'],
+    ambush_done:()=>[n+' ne ambush tod diya','Counter hit laga.'],
+    rpd:()=>[n+' challenged you','Rock, Paper, Dumbbell. Your move.'],
+    rpd_reply:()=>[n+' played back','Result dekho.'],
+    race_start:()=>['Step Race!',n+' started a 1 hour race. Abhi chalo.'],
+    answer:()=>[n+' answered today\'s question','Tumhara answer dekhne ke liye reply karo.'],
+    plank:()=>[n+' planked '+fmtMs(d.ms),'Beat it?'],
+    nose:()=>[n+': '+d.reps+' nose push-ups','Tumhare face pe.'],
+    slap:()=>[n+' ne '+d.n+' thappad maare','Tumhare face pe.'],
+    redeem:()=>[n+' is eating the cheat meal','Token used.']}[type];
+  if(msg){const[t,b]=msg();push(r,t,b)}
+}
+const fmtMs=ms=>{const s=Math.floor((ms||0)/1000);return Math.floor(s/60)+':'+pad(s%60)};
+
+/* ---------- Refresh and animating new hits ---------- */
+let seenHits=new Set(),seenNudges=new Set(),booted=false;
+function refresh(){
+  S=compute(events,now());
+  setLooks(stage,S);
+  const fresh=S.hits.filter(h=>h.w===S.cur&&!seenHits.has(h.id));
+  if(!booted){
+    const last=lsGet('seen-'+me,0);
+    const away=fresh.filter(h=>h.ts>last).slice(-6);
+    const playing=new Set(away.map(h=>h.id));
+    let base={h:100,n:100};
+    for(const h of S.hits)if(h.w===S.cur&&!playing.has(h.id)){base[rival(h.by)]-=h.amt}
+    stage.hp={h:Math.max(0,base.h),n:Math.max(0,base.n)};
+    away.forEach(queueHit);
+    S.hits.forEach(h=>seenHits.add(h.id));S.nudges.forEach(n=>{if(n.ts<=last)seenNudges.add(n.id)});
+    booted=true;
+  }else{
+    fresh.forEach(h=>{queueHit(h);seenHits.add(h.id)});
+  }
+  /* correct any drift once nothing is playing */
+  if(!stage.cur&&!stage.q.length)stage.hp={h:S.week.hp.h,n:S.week.hp.n};
+  lsSet('seen-'+me,now());
+  render();checkPopups();
+}
+function queueHit(h){stage.play({by:h.by,vict:rival(h.by),amt:h.amt,cap:PL[h.by].name+': '+h.label})}
+function toast(m){document.getElementById('toast')?.remove();const d=document.createElement('div');d.id='toast';d.setAttribute('role','status');d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2800)}
+
+/* ---------- Home ---------- */
+function nextCard(){
+  const r=rival(me),t=now();
+  const amb=S.ambushes.find(m=>m.target===me&&!m.done&&t<m.end);
+  if(amb){const left=Math.ceil((amb.end-t)/60000);return `<section class="card hot"><div class="row" style="flex-wrap:nowrap">${headTag(r,'happy',54)}<div><p class="eyebrow">${PL[r].name} ka Ambush. ${left} min left</p><p class="big">${esc(CHALLENGES[amb.ch][0])}</p></div></div><p class="sub">Snap bhejo aur Done dabao. Nahi kiya toh 5 HP gaya.</p><button class="btn p" data-a="ambDone" data-id="${amb.id}">Done, snap sent</button></section>`}
+  const v=Object.values(S.claims).filter(c=>c.actor===r&&c.status==='pending').sort((a,b)=>a.ts-b.ts)[0];
+  if(v){const left=MAX_REJ-S.weeks[weekOf(v.day)].rej[me];
+    return `<section class="card"><div class="row" style="flex-wrap:nowrap">${headTag(r,'smug',54)}<div><p class="eyebrow">${PL[r].name} says, snap check karo</p><p class="big">${esc(claimLabel(v))}</p></div></div><div class="row"><button class="btn g" data-a="ok" data-id="${v.id}">Approve</button><button class="btn r" data-a="no" data-id="${v.id}" ${left<1?'disabled':''}>Reject (${left})</button></div><button class="btn w small" data-a="poke" data-id="${v.id}">Snap nahi aaya</button></section>`}
+  const g=S.rpd.find(x=>x.from===r&&x.reply===null);
+  if(g)return `<section class="card boss"><div class="row" style="flex-wrap:nowrap">${headTag(r,'happy',54)}<div><p class="eyebrow">${PL[r].name} has picked</p><p class="big">Rock, Paper, Dumbbell</p></div></div><div class="row">${FORMS.map((f,i)=>`<button class="btn w small" data-a="rpdReply" data-id="${g.id}" data-m="${i}">${f}</button>`).join('')}</div></section>`;
+  const rc=S.races.find(x=>!x.settled&&x.logs[me]===undefined&&t>=x.end&&t<x.close);
+  if(rc)return `<section class="card boss"><p class="eyebrow">Step Race over</p><p class="big">Kitne steps hue?</p><button class="btn b" data-a="raceLog" data-id="${rc.id}">Log my steps</button></section>`;
+  const live=S.races.find(x=>!x.settled&&t<x.end);
+  const raceLine=live?`<p class="sub">Step Race chal rahi hai: ${Math.ceil((live.end-t)/60000)} min left.</p>`:'';
+  const qa=S.answers[S.today]||{};
+  if(!qa[me])return `<section class="card boss"><p class="eyebrow">Aaj ka sawaal${qa[r]?', '+PL[r].name+' answered':''}</p><p class="big">${esc(questionFor(S.today))}</p><p class="sub">Answers reveal once you've both replied.</p><button class="btn b" data-a="answer">Answer</button>${raceLine}</section>`;
+  const q=questsFor(S,me,S.today).filter(x=>x.status==='todo'&&x.q!=='sleep');
+  const h=hourIst(t);
+  const sleep=questsFor(S,me,S.today).find(x=>x.q==='sleep'&&x.status==='todo');
+  if(sleep&&(h>=21||h<.5))return questCard(sleep,raceLine);
+  const pick=q.find(x=>x.q==='meal'&&((x.slot===0&&h<12)||(x.slot===1&&h>=12&&h<17)||(x.slot===2&&h>=19)))||q.find(x=>x.q!=='meal')||q[0];
+  if(pick)return questCard(pick,raceLine);
+  return `<section class="card"><div class="row" style="flex-wrap:nowrap">${headTag(me,'happy',54)}<div><p class="eyebrow">Aaj ka kaam done</p><p class="big">Ab ${PL[r].name} ko thappad?</p></div></div><button class="btn" data-a="slap">Play Thappad</button>${raceLine}</section>`;
+}
+function questCard(q,extra){
+  const isStep=q.q==='steps';
+  const gymExtra=q.q==='gym'?`<button class="btn w small" data-a="planb">Gym nahi? Plan B: 15k steps</button>`:'';
+  return `<section class="card"><p class="eyebrow">Next up, +${Math.round(q.pts)} damage${S.week.revenge===me&&dayIdx(S.today)===0?', Revenge Monday x2':''}</p><p class="big">${esc(q.label)}</p>
+  ${isStep?`<button class="btn" data-a="steps">Log steps and snap</button>`:`<button class="btn" data-a="claim" data-q="${q.q}" ${q.slot!==undefined?`data-s="${q.slot}"`:''}>Snap bhej diya</button>`}${gymExtra}${extra||''}</section>`;
+}
+function vHome(){
+  const r=rival(me),W=S.week,qs=questsFor(S,me,S.today),P=W.p[me];
+  const left=7-dayIdx(S.today);
+  const chips=qs.map(q=>`<button class="chip ${q.status}" data-a="${q.status==='todo'?(q.q==='steps'?'steps':'claim'):q.q==='steps'?'steps':'info'}" data-q="${q.q}" ${q.slot!==undefined?`data-s="${q.slot}"`:''}>${esc(q.short)}<small>${{ok:'Done',pending:'Waiting',no:'Rejected',todo:'To do'}[q.status]}</small></button>`).join('');
+  const contentDone=Math.min(P.content,3);
+  const karz=S.karz[me];
+  return `<div class="hp"><div class="h"><div class="nm"><span>Harshdeep</span><span id="hv-h">${Math.round(stage.hp.h)}</span></div><div class="bar"><i id="hp-h" style="width:${stage.hp.h}%"></i></div></div><div class="n"><div class="nm"><span>Nikki</span><span id="hv-n">${Math.round(stage.hp.n)}</span></div><div class="bar"><i id="hp-n" style="width:${stage.hp.n}%"></i></div></div></div>
+  <div class="stage" id="slot"><div class="cap" id="cap"></div></div>
+  ${S.practice?`<section class="card boss"><p class="big">Practice mode</p><p class="sub">Try everything. It all resets when the real fight starts on Monday, ${new Date(START+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long'})}.</p></section>`:''}<p class="sub" style="text-align:center;color:var(--ink);font-weight:600">${S.practice?'Practice round':left===1?'Fight ends tonight':'Fight ends in '+left+' days'}. ${RANKS[rankOf(S.liveXp[me])][0]}${S.streak[me]?', '+S.streak[me]+' day streak':''}.${karz?' Karz: '+fmtN(karz)+' steps.':''}</p>
+  ${nextCard()}
+  <div class="chips" aria-label="Today's quests">${chips}<button class="chip ${contentDone>=3?'ok':''}" data-a="claim" data-q="content" ${contentDone>=3?'disabled':''}>Content<small>${contentDone} of 3</small></button></div>
+  <div class="acts"><button class="btn p" data-a="nudge">Nudge ${PL[r].name}</button><button class="btn b" data-a="ambush">Ambush</button></div>
+  ${pushCard()}`;
+}
+
+/* ---------- Games ---------- */
+function vGames(){
+  const r=rival(me),W=S.week,B=bossFor(S.cur),raid=W.raid,bp=Math.max(0,100-raid/RAID_T*100);
+  const qa=S.answers[S.today]||{};
+  const rec=S.records;
+  const qCard=qa[me]&&qa[r]?`<section class="card"><p class="eyebrow">Aaj ka sawaal</p><h3>${esc(questionFor(S.today))}</h3><div class="row" style="flex-wrap:nowrap;align-items:flex-start">${headTag('h','happy',38)}<p>${esc(qa.h)}</p></div><div class="row" style="flex-wrap:nowrap;align-items:flex-start">${headTag('n','happy',38)}<p>${esc(qa.n)}</p></div></section>`
+    :qa[me]?`<section class="card"><p class="eyebrow">Aaj ka sawaal</p><h3>${esc(questionFor(S.today))}</h3><p class="sub">Your answer is in. ${PL[r].name} hasn't replied yet, so nobody sees it. <button data-a="nudgeQ" style="text-decoration:underline;font-weight:700;min-height:44px">Nudge</button></p></section>`
+    :`<section class="card boss"><p class="eyebrow">Aaj ka sawaal</p><h3>${esc(questionFor(S.today))}</h3><button class="btn b" data-a="answer">Answer</button></section>`;
+  const slapOk=Object.values(S.claims).some(c=>c.actor===me&&c.day===S.today);
+  const lastR=S.rpd.filter(g=>g.reply!==null).slice(-1)[0];
+  return `<h2>Boss Raid</h2>
+  <section class="card boss"><div class="row" style="flex-wrap:nowrap">${bossSvg(B)}<div style="flex:1;min-width:0"><p class="big">${esc(B[0])}</p><p class="sub">Team up. ${fmtN(raid)} of ${fmtN(RAID_T)} combined steps.</p></div></div><div class="track"><i style="width:${bp}%"></i></div><p class="sub">Beat him by Sunday and you both get +50 XP. Lose and you both drop 20.</p></section>
+  ${qCard}
+  <h2>Mini games</h2>
+  <div class="grid2">
+    ${game('slap','Thappad','15 seconds on '+PL[r].name+"'s face",'Best: '+rec.slap[me]+(slapOk?'':'. Do a quest first'),!slapOk)}
+    ${game('nose','Nose Push-ups','Phone on the floor. Every rep hits them.','Best: '+rec.nose[me]+' vs '+rec.nose[r])}
+    ${game('plank','Plank Duel','Hold the screen as long as you plank.','Best: '+fmtMs(rec.plank[me])+' vs '+fmtMs(rec.plank[r]))}
+    ${game('rpd','Rock, Paper, Dumbbell','Loser owes 20 squats.',lastR?(lastR.winner?PL[lastR.winner].name+' won last':'Last was a draw'):'Throw down')}
+    ${game('race','Step Race','1 hour. Most steps wins 5 damage.',S.races.some(x=>!x.settled)?'Race is on':'Start one')}
+    ${game('ambush','Ambush','Exercise attack on '+PL[r].name+'. 1 a day.',ambushLeft()?'Ready':'Used today')}
+  </div>`;
+}
+const game=(a,t,s,e,dis)=>`<button class="game" data-a="${a}" ${dis?'disabled':''}><b>${esc(t)}</b><span>${esc(s)}</span><em>${esc(e)}</em></button>`;
+function bossSvg(B){return `<svg width="74" height="74" viewBox="0 0 74 74" aria-hidden="true" style="flex:0 0 auto"><path d="M37 5 L69 62 Q37 74 5 62 Z" fill="${B[1]}" stroke="#1E1633" stroke-width="4" stroke-linejoin="round"/><path d="M24 34l9 5M50 34l-9 5" stroke="#1E1633" stroke-width="4" stroke-linecap="round"/><circle cx="29" cy="43" r="4" fill="#1E1633"/><circle cx="45" cy="43" r="4" fill="#1E1633"/><path d="M28 56q9-7 18 0" fill="none" stroke="#1E1633" stroke-width="4" stroke-linecap="round"/></svg>`}
+const ambushesToday=()=>S.ambushes.filter(m=>m.from===me&&dayKey(m.ts)===S.today).length;
+const ambushLeft=()=>ambushesToday()<1;
+
+/* ---------- Season ---------- */
+function vSeason(){
+  const r=rival(me),xh=S.liveXp.h,xn=S.liveXp.n;
+  const lad=[...RANKS.keys()].reverse().map(i=>`<div><div><b>${RANKS[i][0]}</b><br><span>${fmtN(RANKS[i][1])} XP</span></div><div class="hs">${rankOf(xh)===i?headTag('h','smug',36):''}${rankOf(xn)===i?headTag('n','smug',36):''}</div></div>`).join('');
+  const di=dostiOf(S.dosti),next=DOSTI[di+1];
+  const hist=S.results.slice(-8).reverse().map(x=>`<div class="stat"><span>Week of ${x.w.slice(5)}</span><b>${x.pct.h}% vs ${x.pct.n}%, ${x.outcome==='double'?'Double KO':x.outcome==='draw'?'Draw':PL[x.outcome].name}</b></div>`).join('')||'<p class="sub">Your first fight finishes on Sunday night.</p>';
+  const P=S.week.p;
+  return `<h2>Season</h2>
+  <section class="card"><div class="stat"><span>You this week</span><b>${Math.round(P[me].pts/2)}%</b></div><div class="stat"><span>${PL[r].name} this week</span><b>${Math.round(P[r].pts/2)}%</b></div><div class="stat"><span>Gym sessions</span><b>${P[me].gym}${P[me].planb?' + '+P[me].planb+' Plan B':''} of ${PL[me].gymT}</b></div><div class="stat"><span>Season XP</span><b>${fmtN(S.liveXp[me])}</b></div><div class="stat"><span>Clean weeks</span><b>${S.clean[me]}</b></div><div class="stat"><span>Cheat meal tokens</span><b>${S.tokens[me]}</b></div>${S.tokens[me]?'<button class="btn" data-a="redeem">Use a cheat meal</button>':'<p class="sub">Score 85% in a week to earn a cheat meal.</p>'}</section>
+  <section class="card boss"><p class="eyebrow">Dosti level</p><p class="big">${DOSTI[di][0]}</p><p class="sub">${next?`${next[1]-S.dosti} more to ${next[0]}. Grows when you both answer the daily question, cheer each other and beat bosses.`:'Max level. Sambhal ke.'}</p></section>
+  <h3>Ranks</h3><div class="lad">${lad}</div>
+  <h3>Past fights</h3><section class="card">${hist}</section>
+  <h3>Your faces</h3><section class="card"><p class="sub">Tap one to add a photo. One photo works for all of them, but six is way funnier.</p><div class="faces">${EXPR.map(([e,l])=>`<button data-a="face" data-e="${e}">${headTag(me,e,72)}${l}</button>`).join('')}</div></section>
+  <section class="card"><details><summary>Rulebook</summary><ul>
+    <li>Each of you can earn 200 points a week from your own plan. 85% (170 points) unlocks the cheat meal and KOs the other fighter.</li>
+    <li>Harshdeep: gym ${PL.h.gymT} days, ${fmtN(PL.h.stepT)}+ steps daily, 3 meals, asleep by 12:30, 3 content posts.</li>
+    <li>Nikki: gym ${PL.n.gymT} days with 40 min incline, ${fmtN(PL.n.stepT)} steps daily, 3 meals, 3 content posts.</li>
+    <li>Send the snap on Snapchat, tap the quest here. The other person approves or rejects. No answer by 2 PM next day means it passes.</li>
+    <li>${MAX_REJ} rejections each per week. Meals pass if protein is on the plate and nothing is fried or sugary without a token.</li>
+    <li>Plan B: 15,000 steps replaces a gym session for half points, twice a week.</li>
+    <li>Karz: 5,000 extra steps per missed session, or 5,000 if you miss 85%, capped at 15,000. Steps above your target pay it off.</li>
+    <li>Lose a week and Monday is Revenge Monday, with double quest damage.</li>
+    <li>Mini game damage helps you win the fight but never earns the cheat meal. Only your plan does.</li>
+  </ul></details></section>
+  <section class="card"><div class="row"><button class="btn w small" data-a="sound">Sound: ${soundOn?'On':'Off'}</button>${LIVE?`<button class="btn w small" data-a="pushT">${pushLabel()}</button><button class="btn w small" data-a="pw">Change password</button><button class="btn w small" data-a="out">Log out</button>`:''}</div></section>`;
+}
+
+/* ---------- Notifications ---------- */
+let pushOn=lsGet('push',false);
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+const pushLabel=()=>pushOn?'Notifications: On':'Notifications: Off';
+function pushCard(){
+  if(!LIVE||pushOn||!CFG.vapidPublicKey||lsGet('pushHide',false))return '';
+  if(isIOS()&&!isStandalone())return `<section class="card"><p class="big">Add to Home Screen</p><p class="sub">In Safari, tap Share, then Add to Home Screen, and open Dishoom from there. iPhones only send notifications that way.</p></section>`;
+  return `<section class="card"><p class="big">Get hit alerts</p><p class="sub">Know when ${PL[rival(me)].name} hits, nudges or ambushes you.</p><div class="row"><button class="btn" data-a="pushT">Turn on</button><button class="btn w" data-a="pushHide">Later</button></div></section>`;
+}
+function b64u(s){const p=s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice(0,(4-s.length%4)%4);return Uint8Array.from(atob(p),c=>c.charCodeAt(0))}
+async function togglePush(){
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    if(pushOn){const s=await reg.pushManager.getSubscription();if(s){await sb.from('push_subs').delete().eq('endpoint',s.endpoint);await s.unsubscribe()}pushOn=false;lsSet('push',false);render();return}
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast('Notifications are blocked in your phone settings.');return}
+    const s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(CFG.vapidPublicKey)});
+    const{error}=await sb.from('push_subs').upsert({endpoint:s.endpoint,player:me,sub:s.toJSON()});
+    if(error)throw error;
+    pushOn=true;lsSet('push',true);render();toast('Notifications on');
+  }catch(e){toast('Notifications could not turn on on this phone.')}
+}
+
+/* ---------- Render ---------- */
+function render(){
+  if(!me){renderLogin();return}
+  const f=document.activeElement;
+  if(f&&appEl.contains(f)&&f.tagName==='INPUT')return;
+  const scroll=window.scrollY;
+  const demoBar=LIVE?'':`<div class="demo"><span>Sample data. Play as</span><button data-a="as" data-k="h" aria-pressed="${me==='h'}">Harshdeep</button><button data-a="as" data-k="n" aria-pressed="${me==='n'}">Nikki</button><button data-a="reset">Reset</button></div>`;
+  const body={home:vHome,games:vGames,season:vSeason}[tab]();
+  appEl.innerHTML=`<header class="top"><span class="logo">Dishoom</span><span class="pill">${esc(DOSTI[dostiOf(S.dosti)][0])}</span></header>${demoBar}${body}`;
+  const slot=document.getElementById('slot');if(slot)slot.prepend(stage.cv);
+  const c=document.getElementById('cap');if(c&&stage.cur)c.innerHTML=`<span>${esc(stage.cur.cap)}</span>`;
+  const todo=(Object.values(S.claims).filter(c=>c.actor===rival(me)&&c.status==='pending').length)+(S.ambushes.filter(m=>m.target===me&&!m.done&&now()<m.end).length);
+  tabsEl.innerHTML=[['home','Fight',todo],['games','Games',0],['season','Season',0]].map(([k,l,n])=>`<button data-a="tab" data-k="${k}" aria-current="${tab===k}">${l}${n?`<span class="dot">${n}</span>`:''}</button>`).join('');
+  window.scrollTo(0,scroll);
+}
+let loginWho='h';
+function renderLogin(){
+  tabsEl.innerHTML='';
+  appEl.innerHTML=`<form class="login" id="lf"><h2 style="font-size:38px">Dishoom</h2><p>Who's fighting?</p><div class="who"><button type="button" data-a="who" data-k="h" aria-pressed="${loginWho==='h'}">${headTag('h','smug',96)}Harshdeep</button><button type="button" data-a="who" data-k="n" aria-pressed="${loginWho==='n'}">${headTag('n','smug',96)}Nikki</button></div><label for="pw" class="sub">Password</label><input class="field" id="pw" type="password" autocomplete="current-password" style="max-width:280px"><button class="btn" style="width:200px">Enter</button><p class="sub" id="lerr"></p></form>`;
+  document.getElementById('lf').addEventListener('submit',async e=>{e.preventDefault();const{error}=await sb.auth.signInWithPassword({email:PL[loginWho].email,password:document.getElementById('pw').value});if(error){document.getElementById('lerr').textContent='Wrong password, or the account is not set up yet.';return}me=loginWho;startLive()});
+}
+
+/* ---------- Overlays ---------- */
+const sheet=html=>{ovEl.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div>${html}</div></div>`};
+const closeOv=()=>{ovEl.innerHTML='';refresh()};
+const A={
+  tab(e){tab=e.dataset.k;render();scrollTo(0,0)},
+  as(e){me=e.dataset.k;lsSet('viewer',me);seenHits=new Set(S.hits.map(h=>h.id));refresh();},
+  reset(){try{Object.keys(localStorage).filter(k=>k.startsWith('gd-')).forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()},
+  who(e){loginWho=e.dataset.k;renderLogin()},
+  info(e){const q=e.dataset.q;toast(q==='gym'?'Gym already sent':'Already sent')},
+  close(){closeOv()},
+  claim(e){
+    const q=e.dataset.q,slot=e.dataset.s===undefined?undefined:+e.dataset.s;
+    if(q==='sleep'){const h=hourIst(now());if(h<21&&h>=.5){if(h<3){toast('12:30 nikal gaya. Kal try karo.')}else{toast('Bahut jaldi hai. Raat ko 9 ke baad.')}return}}
+    const d={q,day:S.today};if(slot!==undefined)d.slot=slot;
+    act('claim',d);sYay();toast(PL[rival(me)].name+' will score this');
+  },
+  steps(){const cfg=PL[me];sheet(`<h2>Log steps</h2><p class="sub">Snap your step count to ${PL[rival(me)].name}, then type it here. Target: ${cfg.stepGoal}.</p><label for="n1" class="sub">Steps today</label><input class="field" id="n1" type="number" inputmode="numeric" min="1"><p class="sub" id="e1"></p><div class="row"><button class="btn" data-a="stepsGo">Send</button><button class="btn w" data-a="close">Cancel</button></div>`);setTimeout(()=>document.getElementById('n1')?.focus(),50)},
+  stepsGo(){const n=parseInt(document.getElementById('n1').value,10);if(!n||n<1){document.getElementById('e1').textContent='Type your steps as a number.';return}ovEl.innerHTML='';act('claim',{q:'steps',day:S.today,n});sYay()},
+  planb(){sheet(`<h2>Plan B</h2><p class="sub">No gym today? 15,000 steps counts for half the gym points. ${2-S.week.p[me].planb} left this week.</p><label for="n2" class="sub">Steps today</label><input class="field" id="n2" type="number" inputmode="numeric"><p class="sub" id="e2"></p><div class="row"><button class="btn" data-a="planbGo">Claim Plan B</button><button class="btn w" data-a="close">Cancel</button></div>`)},
+  planbGo(){const n=parseInt(document.getElementById('n2').value,10)||0;if(n<15000){document.getElementById('e2').textContent='Plan B needs 15,000. You are '+fmtN(15000-n)+' short.';return}ovEl.innerHTML='';act('claim',{q:'planb',day:S.today,n});sYay()},
+  ok(e){act('verdict',{claim:e.dataset.id,v:'ok'})},
+  no(e){act('verdict',{claim:e.dataset.id,v:'no'});toast('Rejected')},
+  poke(e){act('poke',{claim:e.dataset.id});toast('Nudged. Snap maango.')},
+  nudge(){const r=rival(me);sheet(`<h2>Bolo ${PL[r].name} ko</h2><div class="row">${NUDGES.map(t=>`<button class="btn w small" data-a="nudgeGo" data-k="nudge" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div><h3>Ya hype karo</h3><div class="row">${HYPES.map(t=>`<button class="btn g small" data-a="nudgeGo" data-k="hype" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div><button class="btn w small" data-a="close">Cancel</button>`)},
+  nudgeQ(){act('nudge',{text:'Aaj ka sawaal reply karo',kind:'nudge'});toast('Nudge sent')},
+  nudgeGo(e){ovEl.innerHTML='';const today=S.nudges.filter(n=>n.from===me&&dayKey(n.ts)===S.today).length;if(today>=8){toast('Aaj ke nudges khatam. Thoda break do.');return}act('nudge',{text:e.dataset.t,kind:e.dataset.k});toast('Sent');sBonk()},
+  ambush(){
+    const h=hourIst(now());
+    if(!ambushLeft()){toast('1 Ambush a day. Kal phir.');return}
+    if(h<8){toast('Ambush opens at 8 AM. Sone do.');return}
+    if(!Object.values(S.claims).some(c=>c.actor===me&&c.day===S.today)){toast('Pehle apna ek quest karo, phir attack.');return}
+    sheet(`<h2>Ambush ${PL[rival(me)].name}</h2><p class="sub">If it isn't done in time, 5 HP gone. If it is, they hit you back for 3.</p><div class="row">${CHALLENGES.map((c,i)=>`<button class="btn p small" data-a="ambushGo" data-i="${i}">${c[0]}</button>`).join('')}</div><button class="btn w small" data-a="close">Cancel</button>`)
+  },
+  ambushGo(e){ovEl.innerHTML='';act('ambush',{ch:+e.dataset.i});tone(220,.3,'sawtooth');toast('Ambush launched')},
+  ambDone(e){act('ambush_done',{ambush:e.dataset.id});sYay()},
+  answer(){sheet(`<h2>${esc(questionFor(S.today))}</h2><p class="sub">Hidden until you've both answered.</p><label for="an" class="sub">Your answer</label><input class="field" id="an" maxlength="140"><div class="row"><button class="btn" data-a="answerGo">Send</button><button class="btn w" data-a="close">Later</button></div>`);setTimeout(()=>document.getElementById('an')?.focus(),50)},
+  answerGo(){const t=document.getElementById('an').value.trim();if(!t)return;ovEl.innerHTML='';act('answer',{day:S.today,text:t});sYay()},
+  rpd(){if(S.rpd.some(g=>g.from===me&&g.reply===null)){toast('Waiting for '+PL[rival(me)].name+' to play.');return}const c=S.rpd.filter(g=>g.from===me&&dayKey(g.ts)===S.today).length;if(c>=3){toast('3 a day. Kal phir.');return}sheet(`<h2>Rock, Paper, Dumbbell</h2><p class="sub">Paper beats Rock, Dumbbell beats Paper, Rock beats Dumbbell. Loser owes 20 squats.</p><div class="row">${FORMS.map((f,i)=>`<button class="btn small" data-a="rpdGo" data-m="${i}">${f}</button>`).join('')}</div><button class="btn w small" data-a="close">Cancel</button>`)},
+  rpdGo(e){ovEl.innerHTML='';act('rpd',{move:+e.dataset.m});toast('Locked in. Waiting for '+PL[rival(me)].name)},
+  rpdReply(e){const g=S.rpd.find(x=>x.id===e.dataset.id);act('rpd_reply',{game:e.dataset.id,move:+e.dataset.m});const G=S.rpd.find(x=>x.id===g.id);showRpd(G)},
+  race(){if(S.races.some(x=>!x.settled)){toast('Race is already on.');return}act('race_start');toast('Race on! Chalo.')},
+  raceLog(e){sheet(`<h2>Race steps</h2><label for="n3" class="sub">Steps in that hour</label><input class="field" id="n3" type="number" inputmode="numeric"><div class="row"><button class="btn" data-a="raceGo" data-id="${e.dataset.id}">Submit</button><button class="btn w" data-a="close">Later</button></div>`)},
+  raceGo(e){const n=parseInt(document.getElementById('n3').value,10)||0;ovEl.innerHTML='';act('race_log',{race:e.dataset.id,n});sYay()},
+  slap(){startSlap()},nose(){startNose()},plank(){startPlank()},
+  redeem(){sheet(`<h2>Cheat meal time</h2><p class="sub">Snap it to ${PL[rival(me)].name}. This uses one token.</p><div class="row"><button class="btn" data-a="redeemGo">Use token</button><button class="btn w" data-a="close">Not yet</button></div>`)},
+  redeemGo(){ovEl.innerHTML='';act('redeem');toast('Khao, peeyo, Monday se phir.')},
+  sound(){soundOn=!soundOn;lsSet('sound',soundOn);render()},
+  pushT(){togglePush()},pushHide(){lsSet('pushHide',true);render()},
+  async out(){await sb.auth.signOut();location.reload()},
+  pw(){sheet(`<h2>Change password</h2><label for="np" class="sub">New password, at least 6 characters</label><input class="field" id="np" type="password" autocomplete="new-password"><p class="sub" id="pe"></p><div class="row"><button class="btn" data-a="pwGo">Save</button><button class="btn w" data-a="close">Cancel</button></div>`)},
+  async pwGo(){const v=document.getElementById('np').value;if(v.length<6){document.getElementById('pe').textContent='Use at least 6 characters.';return}const{error}=await sb.auth.updateUser({password:v});if(error){document.getElementById('pe').textContent='Could not change it. Try again.';return}ovEl.innerHTML='';toast('Password changed')},
+  face(e){openFace(e.dataset.e)},
+  dismiss(){ovEl.innerHTML='';popupOpen=false;checkPopups()},
+  nudgeBack(e){ovEl.innerHTML='';popupOpen=false;act('nudge',{text:e.dataset.t,kind:'nudge'});checkPopups()}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&!b.disabled&&A[b.dataset.a])A[b.dataset.a](b)});
+
+function showRpd(g){
+  const r=g.winner;const you=r===me;
+  popupOpen=true;
+  ovEl.innerHTML=`<div class="full ${r?you?'':'pink':'blue'}"><div class="row" style="justify-content:center;flex-wrap:nowrap">${headTag('h','smug',76)}<span class="big">vs</span>${headTag('n','smug',76)}</div><p class="big">${FORMS[g.from==='h'?g.move:g.reply]} vs ${FORMS[g.from==='n'?g.move:g.reply]}</p><p class="num" style="font-size:44px">${r?(you?'You win':PL[r].name+' wins'):'Draw'}</p><p>${r?PL[rival(r)].name+' owes 20 squats. On snap.':'Dobara khelo.'}</p><button class="btn w" data-a="dismiss">Back</button></div>`;
+  r&&(you?sYay():sPunch());
+}
+/* Thappad */
+function startSlap(){
+  const r=rival(me);let n=0,left=15,on=false,tm;
+  ovEl.innerHTML=`<div class="full pink" id="sl" style="touch-action:none"><p class="big" id="st">Tap their face when ready</p><p class="num" id="sn">0</p><img id="sh" class="head big-head" src="${faceSrc(r,'smug')}" alt="${PL[r].name}"><p class="sub" style="color:var(--ink)">15 seconds. Go wild.</p><button class="btn w small" data-a="close">Quit</button></div>`;
+  const h=document.getElementById('sh');
+  const end=()=>{clearInterval(tm);on=false;act('slap',{n});sYay();ovEl.innerHTML=`<div class="full pink"><img class="head big-head" src="${faceSrc(r,'sad')}" alt=""><p class="num">${n}</p><p class="big">thappad to ${PL[r].name}</p><p>+${Math.min(10,Math.floor(n/10))} XP if it's your first today</p><button class="btn w" data-a="close">Done</button></div>`};
+  h.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    if(!on){on=true;tm=setInterval(()=>{left--;const s=document.getElementById('st');if(s)s.textContent=left+' seconds';if(left<=0)end()},1000);document.getElementById('st').textContent='15 seconds'}
+    n++;document.getElementById('sn').textContent=n;
+    h.classList.remove('hit');void h.offsetWidth;h.classList.add('hit');
+    if(n%8===0)h.src=faceSrc(r,['hurt','sad','sweat'][Math.floor(n/8)%3]);
+    sBonk();buzz(12);
+    const f=document.createElement('div');f.className='fly';f.textContent=['Thappad','Chataak','Dhap','Aah'][n%4];f.style.left=(e.clientX-30)+'px';f.style.top=(e.clientY-20)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),600);
+  });
+}
+/* Nose push-ups */
+function startNose(){
+  const r=rival(me);let n=0,last=0;
+  ovEl.innerHTML=`<div class="full blue" id="ns" style="touch-action:none"><p class="big">Phone on the mat. Touch it with your nose at every rep.</p><p class="num" id="nn">0</p><img id="nh" class="head big-head" src="${faceSrc(r,'smug')}" alt=""><p class="sub" style="color:var(--ink)">Every 5 reps hits ${PL[r].name} for 1, up to 6 a day.</p><button class="btn w" data-a="noseEnd">Finish</button></div>`;
+  const wrap=document.getElementById('ns'),h=document.getElementById('nh');
+  A.noseEnd=()=>{if(n>0){act('nose',{reps:n});sYay()}ovEl.innerHTML=`<div class="full blue"><p class="num">${n}</p><p class="big">nose push-ups</p><button class="btn w" data-a="close">Done</button></div>`};
+  wrap.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button'))return;e.preventDefault();
+    const t=performance.now();if(t-last<450)return;last=t;n++;
+    document.getElementById('nn').textContent=n;h.classList.remove('hit');void h.offsetWidth;h.classList.add('hit');
+    if(n%5===0){h.src=faceSrc(r,'hurt');tone(600,.15)}else sBonk();buzz(25);
+  });
+}
+/* Plank duel */
+function startPlank(){
+  const r=rival(me),best=S.records.plank[r];let st=0,tm=null,lock=null;
+  const taunts=['Bas itna hi?','Kaanp rahe ho kya','Abhi toh shuru hua hai','Pet andar','Mummy dekh rahi hai','Haar maan lo','Thoda aur, loser','Respect. Thodi si.'];
+  ovEl.innerHTML=`<div class="full dark" id="pl" style="touch-action:none"><p class="big" id="pb">Get in position. Hold the screen with one thumb.</p><p class="num" id="pt">0:00</p><img class="head big-head" id="ph" src="${faceSrc(r,'smug')}" alt=""><p>${best?PL[r].name+"'s record: "+fmtMs(best)+'. Beat it for 5 damage.':'Set the first record.'}</p><button class="btn w small" data-a="close" id="pq">Quit</button></div>`;
+  const w=document.getElementById('pl');
+  const stop=()=>{if(!st)return;const ms=performance.now()-st;st=0;clearInterval(tm);try{lock&&lock.release()}catch(e){}
+    if(ms>3000)act('plank',{ms:Math.round(ms)});const won=best&&ms>best;won?sYay():sBonk();
+    ovEl.innerHTML=`<div class="full ${won?'':'dark'}"><img class="head big-head" src="${faceSrc(r,won?'sad':'happy')}" alt=""><p class="num">${fmtMs(ms)}</p><p class="big">${won?'Record tod diya!':best?PL[r].name+' abhi bhi aage':'Record set'}</p><button class="btn w" data-a="close">Done</button></div>`};
+  w.addEventListener('pointerdown',async e=>{if(e.target.closest('button')||st)return;e.preventDefault();st=performance.now();document.getElementById('pq').hidden=true;
+    try{lock=await navigator.wakeLock?.request('screen')}catch(_){}
+    tm=setInterval(()=>{const s=performance.now()-st;const el=document.getElementById('pt');if(!el)return;el.textContent=fmtMs(s);const i=Math.floor(s/9000);document.getElementById('pb').textContent=taunts[i%taunts.length]},200)});
+  w.addEventListener('pointerup',stop);w.addEventListener('pointercancel',stop);w.addEventListener('contextmenu',e=>e.preventDefault());
+}
+/* Face studio */
+function openFace(expr){
+  const label=(EXPR.find(x=>x[0]===expr)||[])[1];
+  sheet(`<h2>${label} face</h2><p class="sub">Make the face, take the selfie, fit it in the circle.</p><label class="btn" for="fi">Take or pick a photo<input id="fi" type="file" accept="image/*" capture="user" style="position:absolute;opacity:0;width:1px;height:1px"></label><div class="crop" id="cw" hidden><canvas id="cc" width="320" height="320"></canvas></div><label class="sub" for="cz" id="czl" hidden>Zoom</label><input id="cz" type="range" min="1" max="3" step=".01" value="1" hidden><div class="row"><button class="btn" id="fs" disabled>Save</button><button class="btn w" data-a="close">Cancel</button></div>`);
+  let img=null,z=1,ox=0,oy=0,drag=null;
+  const cc=document.getElementById('cc'),cx=cc.getContext('2d');
+  const paint=()=>{if(!img)return;const b=Math.max(320/img.width,320/img.height)*z,w=img.width*b,h=img.height*b;ox=Math.min(0,Math.max(320-w,ox));oy=Math.min(0,Math.max(320-h,oy));cx.fillStyle='#fff';cx.fillRect(0,0,320,320);cx.drawImage(img,ox,oy,w,h)};
+  document.getElementById('fi').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{img=i;z=1;const b=Math.max(320/i.width,320/i.height);ox=(320-i.width*b)/2;oy=(320-i.height*b)/2;document.getElementById('cw').hidden=false;document.getElementById('cz').hidden=false;document.getElementById('czl').hidden=false;document.getElementById('fs').disabled=false;paint()};i.src=u});
+  document.getElementById('cz').addEventListener('input',e=>{z=+e.target.value;paint()});
+  const cw=document.getElementById('cw');
+  cw.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY,ox,oy];cw.setPointerCapture(e.pointerId)});
+  cw.addEventListener('pointermove',e=>{if(!drag)return;const s=320/cw.clientWidth;ox=drag[2]+(e.clientX-drag[0])*s;oy=drag[3]+(e.clientY-drag[1])*s;paint()});
+  cw.addEventListener('pointerup',()=>drag=null);
+  document.getElementById('fs').addEventListener('click',async()=>{const o=document.createElement('canvas');o.width=o.height=256;o.getContext('2d').drawImage(cc,0,0,256,256);const data=o.toDataURL('image/jpeg',.8);await store.saveFace(expr,data);ovEl.innerHTML='';refresh();toast('Face saved. Looking dangerous.')});
+}
+/* Pop-ups: nudges, and last week's finale */
+let popupOpen=false;
+function checkPopups(){
+  if(popupOpen||ovEl.innerHTML)return;
+  const res=S.results.filter(r=>!lsGet('res-'+me+'-'+r.w,false)).slice(-1)[0];
+  if(res){S.results.forEach(r=>{if(r.w<res.w)lsSet('res-'+me+'-'+r.w,true)});return showFinale(res)}
+  const n=S.nudges.find(x=>x.from===rival(me)&&!seenNudges.has(x.id));
+  if(n){seenNudges.add(n.id);popupOpen=true;const r=n.from;tone(440,.15);buzz(60);
+    ovEl.innerHTML=`<div class="full ${n.kind==='hype'?'':'pink'}"><div class="bubble">${esc(n.text)}</div><img class="head big-head" src="${faceSrc(r,n.kind==='hype'?'happy':'smug')}" alt="${PL[r].name}"><p class="big">${PL[r].name}</p><div class="row" style="justify-content:center"><button class="btn w" data-a="nudgeBack" data-t="${n.kind==='hype'?'Tu bhi kam nahi':'Haan haan, kar raha hoon'}">${n.kind==='hype'?'Tu bhi kam nahi':'Haan haan'}</button><button class="btn" data-a="dismiss">OK</button></div></div>`}
+}
+function showFinale(res){
+  popupOpen=true;
+  const st=new Stage();st.exprFor=null;setLooks(st,S);st.hp={h:100,n:100};
+  const P=res.outcome,win=P==='h'||P==='n'?P:null;
+  ovEl.innerHTML=`<div class="full"><h2>Last week's fight</h2><div class="hp" style="width:100%;max-width:440px"><div class="h"><div class="nm"><span>Harshdeep</span><span id="fv-h">100</span></div><div class="bar"><i id="fp-h" style="width:100%"></i></div></div><div class="n"><div class="nm"><span>Nikki</span><span id="fv-n">100</span></div><div class="bar"><i id="fp-n" style="width:100%"></i></div></div></div><div class="stage" id="fs2" style="width:100%;max-width:440px"><div class="cap" id="fcap"></div></div><div id="fend" style="display:flex;flex-direction:column;gap:9px;align-items:center;width:100%;max-width:440px"><button class="btn w small" id="fskip">Skip</button></div></div>`;
+  document.getElementById('fs2').prepend(st.cv);
+  st.onCap=s=>{const el=document.getElementById('fcap');if(el)el.innerHTML=s?`<span>${esc(s)}</span>`:''};
+  st.onHp=()=>{for(const k of['h','n']){const a=document.getElementById('fp-'+k),b=document.getElementById('fv-'+k);if(a)a.style.width=st.hp[k]+'%';if(b)b.textContent=Math.round(st.hp[k])}};
+  /* squeeze the week into 8 big exchanges */
+  const groups=[];const hs=res.hits;const per=Math.max(1,Math.ceil(hs.length/8));
+  for(let i=0;i<hs.length;i+=per){const g=hs.slice(i,i+per);for(const by of['h','n']){const a=g.filter(x=>x.by===by);if(a.length)groups.push({by,vict:rival(by),amt:a.reduce((s,x)=>s+x.amt,0),cap:PL[by].name+': '+a[a.length-1].label})}}
+  groups.forEach(g=>st.play(g));
+  let done=false;
+  const finish=()=>{if(done)return;done=true;clearInterval(wait);st.q=[];st.cur=null;
+    st.hp={h:Math.max(0,100-res.dmg.n),n:Math.max(0,100-res.dmg.h)};
+    if(P==='double'){st.hp={h:0,n:0}}else if(res.clean.h&&!res.clean.n)st.hp.n=0;else if(res.clean.n&&!res.clean.h)st.hp.h=0;
+    st.onHp();st.onCap(null);sYay();lsSet('res-'+me+'-'+res.w,true);
+    const line=k=>`${PL[k].name}, ${res.pct[k]}%: ${res.clean[k]?'cheat meal unlocked':`no cheat meal${res.karz[k]?', '+fmtN(res.karz[k])+' extra steps':''}`}`;
+    const title=P==='double'?'Double KO':P==='draw'?'Draw':PL[P].name+' wins';
+    const loser=win?rival(win):null;
+    const canSpin=loser===me&&S.spins[res.w]===undefined;
+    const spun=S.spins[res.w]!==undefined?`<p class="big" style="font-size:19px">${esc(PL[loser||me].name)}'s forfeit: ${esc(FORFEITS[S.spins[res.w]])}</p>`:'';
+    document.getElementById('fend').innerHTML=`<p class="num" style="font-size:48px">${title}</p><p style="font-weight:700">${line('h')}</p><p style="font-weight:700">${line('n')}</p><p class="sub" style="color:var(--ink)">Boss Raid: ${res.raidWon?'won, +50 XP each':'lost, -20 XP each'}.${win?' '+PL[loser].name+' gets Revenge Monday.':''}</p>${spun}${canSpin?'<button class="btn p" id="fw">Spin the Penalty Wheel</button>':''}<button class="btn w" id="fc">Next week</button>`;
+    document.getElementById('fc').onclick=()=>{st.alive=false;ovEl.innerHTML='';popupOpen=false;refresh()};
+    const fw=document.getElementById('fw');if(fw)fw.onclick=()=>wheel(res,st);
+  };
+  document.getElementById('fskip').onclick=finish;
+  const wait=setInterval(()=>{if(!st.q.length&&!st.cur){setTimeout(finish,500);clearInterval(wait)}},300);
+  if(!groups.length||REDUCED)finish();
+}
+function wheel(res,st){
+  const idx=Math.floor(Math.random()*FORFEITS.length);
+  document.getElementById('fend').innerHTML=`<div class="ptr"></div><div class="wheel" id="wh"></div><p class="big" id="wt">Ghoom raha hai...</p><button class="btn w" id="wc" hidden>Next week</button>`;
+  requestAnimationFrame(()=>{document.getElementById('wh').style.transform=`rotate(${1440+360-(idx*60+30)}deg)`});
+  setTimeout(()=>{act('spin',{week:res.w,idx});sPunch();document.getElementById('wt').textContent=FORFEITS[idx];const c=document.getElementById('wc');c.hidden=false;c.onclick=()=>{st.alive=false;ovEl.innerHTML='';popupOpen=false;refresh()}},REDUCED?100:3300);
+}
+
+/* ---------- Preview mode ---------- */
+function seedDemo(){
+  const real=Date.now();const idx=dayIdx(dayKey(real));nowOff=(3-idx)*DAY; /* preview always opens on a Thursday */
+  const t=now(),today=dayKey(t),wk=weekOf(today),out=[];
+  const add=(actor,type,data,ts)=>out.push({id:uuid(),ts,actor,type,data});
+  const say=(actor,day,q,extra,mins)=>{const ts=keyTs(day)+mins*60000;const id=uuid();out.push({id,ts,actor,type:'claim',data:{q,day,...extra}});add(rival(actor),'verdict',{claim:id,v:'ok'},ts+600000)};
+  const fullDay=(k,day,o)=>{
+    if(o.gym)say(k,day,'gym',{},600);if(k==='n'&&o.gym)say(k,day,'cardio',{},640);
+    say(k,day,'steps',{n:o.steps},1250);[0,1,2].forEach(s=>{if(!o.miss||o.miss!==s+1)say(k,day,'meal',{slot:s},540+s*300)});
+    if(k==='h'&&o.sleep)say(k,day,'sleep',{},1380);
+  };
+  const lw=addDays(wk,-7);
+  [[1,6900,1],[0,7100,0],[0,6100,1],[1,5200,1],[0,6500,0],[1,6200,0],[0,6400,1]].forEach((r,i)=>fullDay('h',addDays(lw,i),{gym:r[0],steps:r[1],sleep:r[2]}));
+  [1,1,1,1,1,0,0].forEach((g,i)=>fullDay('n',addDays(lw,i),{gym:g,steps:11000+i*100}));
+  for(const k of['h','n'])for(let i=0;i<3;i++)say(k,addDays(lw,4),'content',{},700+i);
+  for(let i=0;i<3;i++){const d=addDays(wk,i);fullDay('h',d,{gym:i!==1,steps:[7200,6300,6800][i],sleep:i!==1});fullDay('n',d,{gym:1,steps:[10400,12100,10200][i],miss:i===1?3:0})}
+  say('n',today,'meal',{slot:0},560);
+  add('n','slap',{n:58},t-3600000);add('n','nose',{reps:17},t-3000000);add('n','plank',{ms:102000},t-2700000);add('h','plank',{ms:74000},t-90000000);add('h','nose',{reps:12},t-90000000);
+  out.push({id:'dq',ts:t-2000000,actor:'n',type:'answer',data:{day:today,text:'Late night maggi. No regrets.'}});
+  add('n','rpd',{move:1},t-1500000);
+  add('n','claim',{q:'gym',day:today},t-900000);
+  return out;
+}
+let botCount=0;
+function bot(ev){
+  const r=rival(me);
+  const later=(ms,fn)=>setTimeout(()=>{const save=me;fn(r);me=save;refresh()},ms);
+  const raw=(type,data)=>{events.push({id:uuid(),ts:now(),actor:r,type,data});lsSet('demo',events)};
+  if(ev.type==='claim')later(2200,()=>raw('verdict',{claim:ev.id,v:'ok'}));
+  if(ev.type==='answer')later(3000,()=>{const A=(S.answers[S.today]||{});if(!A[r])raw('answer',{day:S.today,text:'Tumse behtar, as always.'})});
+  if(ev.type==='ambush')later(4000,()=>raw('ambush_done',{ambush:ev.id}));
+  if(ev.type==='rpd')later(3000,()=>{raw('rpd_reply',{game:ev.id,move:Math.floor(Math.random()*3)});const g=compute(events,now()).rpd.find(x=>x.id===ev.id);toast('Result: '+(g.winner?PL[g.winner].name+' won':'Draw'))});
+  if(ev.type==='race_start')later(1500,()=>raw('nudge',{text:'Race on! Haarne ke liye taiyaar?',kind:'nudge'}));
+  if(ev.type==='verdict'&&ev.data.v==='ok'&&++botCount%2===0)later(3500,()=>raw('nudge',{text:HYPES[Math.floor(Math.random()*HYPES.length)],kind:'hype'}));
+  if(ev.type==='nudge')later(2500,()=>{const c={q:'steps',day:S.today,n:10800};raw('claim',c)});
+}
+
+/* ---------- Start ---------- */
+async function startLive(){
+  try{
+    events=await store.loadAll();
+  }catch(e){appEl.innerHTML=`<div class="login"><h2>Couldn't connect</h2><p class="sub">Check your internet and reopen the app.</p></div>`;return}
+  refresh();store.subscribe();
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){store.sync();refresh()}});
+  setInterval(()=>{if(!document.hidden)store.sync()},30000);
+}
+async function boot(){
+  if(LIVE){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)}).catch(()=>{});
+    if(!window.supabase){appEl.innerHTML=`<div class="login"><h2>Couldn't load</h2><p class="sub">Check your internet and reopen the app.</p></div>`;return}
+    sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey);
+    const{data}=await sb.auth.getSession();
+    const em=data.session&&data.session.user.email;
+    me=em===PL.h.email?'h':em===PL.n.email?'n':null;
+    if(me)startLive();else renderLogin();
+  }else{
+    me=lsGet('viewer','h');
+    {const F=lsGet('faces',{h:{},n:{}}),D=window.DANGAL_DEFAULT_FACES||{h:{},n:{}};faces={h:{...D.h,...F.h},n:{...D.n,...F.n}}}
+    const saved=lsGet('demo',null);
+    if(saved){const idx=dayIdx(dayKey(Date.now()));nowOff=(3-idx)*DAY;events=saved}else{events=seedDemo();lsSet('demo',events)}
+    refresh();
+    setInterval(()=>{if(!document.hidden&&!ovEl.innerHTML)refresh()},20000);
+  }
+}
+boot();
+</script></body></html>
